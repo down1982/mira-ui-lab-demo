@@ -1,0 +1,513 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'none'; connect-src 'self'"><title>MIRA · 视觉工作台（MIRA-UI-LAB）</title><style>
+:root{--bg:#f2f5f9;--card:#ffffff;--line:#d9e3ee;--ink:#16314b;--mut:#5f7890;--acc:#246499;--accd:#1b4f7d;--accd2:#d7e7f5;--ok:#1d6b3a;--okbg:#e5f5e9;--okl:#bfe4cc;--warn:#7a5800;--warnbg:#fff4d6;--warnl:#eed9a8;--bad:#8c3a3a;--badbg:#fdeaea;--rad:12px;--sp:14px;--fs:14.5px}
+body.compact{--sp:8px;--fs:13px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:var(--fs)/1.6 system-ui,"Microsoft YaHei",sans-serif}
+main{max-width:1240px;margin:0 auto;padding:18px 22px 40px;transition:margin-right .18s}
+body.panel main{margin-right:820px}
+@media(max-width:1240px){body.panel main{margin-right:0}}
+h1{font-size:22px;margin:0}
+h3{font-size:15px;margin:0 0 10px}
+.hint{font-size:12px;color:var(--mut);font-weight:400}
+.top{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.top .scope{font-size:12.5px;color:var(--mut)}
+.top .grow{flex:1}
+button{font:inherit;background:#fff;border:1px solid #adbfd2;border-radius:7px;padding:5px 12px;cursor:pointer;color:var(--ink)}
+button:hover{border-color:var(--acc);color:var(--acc)}
+button:disabled{opacity:.4;cursor:default}
+input,select{font:inherit;background:#fff;border:1px solid #adbfd2;border-radius:7px;padding:6px 11px;color:var(--ink)}
+.ic{width:1em;height:1em;vertical-align:-2px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:10px 14px;cursor:pointer;transition:border-color .12s}
+.kpi:hover{border-color:var(--acc)}
+.kpi .kv{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+.kpi .kl{font-size:12.5px;color:var(--mut)}
+.kpi.hot .kv{color:var(--acc)}
+/* charts */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:14px 16px;margin:0 0 12px}
+.hbar{display:flex;align-items:center;gap:8px;margin:5px 0;cursor:pointer;border-radius:6px;padding:2px 4px}
+.hbar:hover{background:#f0f6fc}
+.hbar .lbl{width:150px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;text-align:right;color:#33526d}
+.hbar .track{flex:1;height:16px;background:#edf3f9;border-radius:4px;overflow:hidden}
+.hbar .fill{height:100%;background:linear-gradient(90deg,#3b7bb5,#246499);border-radius:4px;min-width:2px}
+.hbar .val{width:44px;flex:none;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.vchart{display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:14px}
+.vbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;cursor:pointer;min-width:0}
+.vbar .col{width:70%;max-width:34px;background:linear-gradient(180deg,#4c88bf,#246499);border-radius:4px 4px 0 0;min-height:2px;transition:filter .12s}
+.vbar:hover .col{filter:brightness(1.15)}
+.vbar.cur .col{outline:2px solid var(--accd2)}
+.vbar .vv{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+.vbar .vl{font-size:11px;color:var(--mut);margin-top:3px;white-space:nowrap}
+.domchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#f7fafd;border-radius:999px;padding:4px 12px;margin:0 8px 8px 0;font-size:13px;cursor:pointer}
+.domchip:hover{border-color:var(--acc);color:var(--acc)}
+.domchip b{font-variant-numeric:tabular-nums}
+/* ask */
+.ask{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px;margin:6px 0 12px;box-shadow:0 2px 10px rgba(22,49,75,.05)}
+.ask-row{display:flex;gap:10px}
+.ask-row input{flex:1;font-size:16px;padding:11px 15px;border-radius:8px}
+.ask-row button{font-size:15px;padding:11px 26px;background:var(--acc);color:#fff;border:none;border-radius:8px}
+.ask-row button:hover{background:var(--accd);color:#fff}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.qchip{font-size:12.5px;background:#f1f6fb;border:1px solid #cfdeee;color:#31516e;border-radius:999px;padding:3px 13px;cursor:pointer;user-select:none}
+.qchip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.examples{margin-top:8px;font-size:12.5px;color:var(--mut)}
+.examples span{cursor:pointer;text-decoration:underline;margin-right:12px}
+.chipbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chipbar:empty{display:none}
+.fchip{display:inline-flex;align-items:center;gap:6px;background:#e8f1fa;border:1px solid #bcd4ea;color:#1c4670;border-radius:999px;padding:3px 6px 3px 12px;font-size:12.5px}
+.fchip b{font-variant-numeric:tabular-nums}
+.fchip .x{border:none;background:#cfe2f3;color:#1c4670;border-radius:50%;width:18px;height:18px;line-height:1;font-size:12px;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.fchip .x:hover{background:var(--acc);color:#fff}
+/* tabs */
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 10px;border-bottom:2px solid #dce5ef}
+nav.tabs button{background:none;border:none;border-bottom:3px solid transparent;padding:7px 13px;color:#31516e;border-radius:0}
+nav.tabs button.cur{color:var(--acc);border-bottom-color:var(--acc);font-weight:600}
+nav.tabs .spacer{flex:1}
+nav.tabs .mini{font-size:12.5px;color:var(--mut);align-self:center}
+section[hidden]{display:none}
+/* answer cards */
+.acard{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);margin:10px 0;overflow:hidden}
+.acard>header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#f8fbfe;cursor:pointer}
+.acard>header:hover{background:#eef5fb}
+.av{--h:210;width:40px;height:40px;flex:none;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;background:hsl(var(--h),58%,90%);color:hsl(var(--h),60%,30%);border:2px solid hsl(var(--h),45%,78%)}
+.av.sm{width:28px;height:28px;font-size:12.5px;border-width:1.5px}
+.av.xs{width:22px;height:22px;font-size:10.5px;border-width:1px}
+.acard .who b{font-size:15.5px}
+.acard .who .sub{font-size:12px;color:var(--mut)}
+.acard .grow{flex:1;min-width:0}
+.nbadge{display:inline-block;background:var(--acc);color:#fff;border-radius:999px;font-size:12px;padding:1px 10px;font-variant-numeric:tabular-nums}
+.nbadge.out{background:var(--ok)}
+.lite{font-size:12.5px;color:var(--mut)}
+.amsg{padding:11px 16px;border-top:1px solid #edf3f8;cursor:pointer}
+.amsg:hover{background:#f7fafd}
+body.compact .amsg{padding:7px 16px}
+.amsg .subj{font-weight:600;font-size:1.03em;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.amsg .meta{font-size:12px;color:var(--mut);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
+.amsg .prev{font-size:12.5px;color:#3c5a75;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body.compact .amsg .prev{display:none}
+.tag{display:inline-flex;align-items:center;gap:3px;background:#edf3fa;color:#24517a;border-radius:5px;padding:1px 7px;font-size:11.5px}
+.tag.warn{background:var(--warnbg);color:var(--warn)}
+.tag.cust{background:var(--okbg);color:var(--ok)}
+.tag.bad{background:var(--badbg);color:var(--bad)}
+mark.hit{background:#ffd19a;outline:1px solid #e2a049;border-radius:3px;padding:0 1px}
+/* timeline */
+.tl{list-style:none;margin:0;padding:0 4px}
+.tl li{display:flex;gap:12px}
+.tl .rail{width:40px;flex:none;display:flex;flex-direction:column;align-items:center}
+.tl .rail .ln{flex:1;width:2px;background:#cfddec;margin-top:2px}
+.tl .card{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:11px 14px;margin-bottom:var(--sp);cursor:pointer}
+.tl .card:hover{border-color:var(--acc)}
+.tl .card.sel{background:#eaf3fc;border-color:var(--acc)}
+.tl .dmark{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+.tools input[type=search]{min-width:240px}
+.filters{display:none;gap:8px;flex-wrap:wrap;margin:8px 0;padding:12px;background:#f7fafd;border:1px solid #e2ebf4;border-radius:8px}
+.filters.open{display:flex}
+.pager{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.pager button{padding:3px 9px}
+.pager .cur{background:var(--acc);color:#fff;border-color:var(--acc)}
+.cnt{font-variant-numeric:tabular-nums;color:var(--mut);font-size:12.5px}
+/* chains */
+.chain-case{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);margin:10px 0;overflow:hidden}
+.chain-case>header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;flex-wrap:wrap}
+.chain-case>header:hover{background:#f8fbfe}
+.chain-case .body{border-top:1px solid #edf3f8;padding:14px 16px}
+.flow{display:flex;align-items:stretch;overflow-x:auto;padding:4px 2px 10px}
+.fnode{flex:none;width:196px;border:1px solid var(--line);border-radius:10px;background:#fbfdff;padding:10px 12px;position:relative;cursor:pointer}
+.fnode:hover{border-color:var(--acc)}
+.fnode+.fnode{margin-left:30px}
+.fnode+.fnode::before{content:'';position:absolute;left:-19px;top:50%;width:10px;height:10px;border-top:2px solid #9db6cd;border-right:2px solid #9db6cd;transform:translateY(-50%) rotate(45deg)}
+.fnode.q{background:#eaf7ef;border-color:var(--okl)}
+.fnode.latest{border-color:var(--acc);box-shadow:0 0 0 2px var(--accd2)}
+.fnode .fa{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.fnode .ft{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.fnode .fs{font-size:12.5px;font-weight:600;margin:2px 0}
+.fnode .fx{font-size:11.5px;color:var(--mut)}
+.flow-status{margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
+/* roster */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.rcard .row1{display:flex;align-items:center;gap:9px}
+.rcard .bar{height:5px;background:#edf3f9;border-radius:3px;margin-top:8px;overflow:hidden}
+.rcard .bar i{display:block;height:100%;background:#4c88bf;border-radius:3px}
+.rcard.off{opacity:.55}
+/* dedup */
+.dupgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:10px;margin:8px 0}
+.tile{border:1px solid var(--line);border-radius:10px;background:#fbfdff;padding:9px 12px}
+.tile .r{display:flex;align-items:center;gap:8px}
+.tile code{font-size:11.5px;color:var(--mut);word-break:break-all}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9fb4c8}
+.dot.read{background:var(--ok)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+@media(max-width:760px){.cmp{grid-template-columns:1fr}}
+.cmp .side{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfdff;min-width:0}
+.cmp .side.kept{border-color:var(--acc);background:#f4f9fe}
+.cmp .side h4{margin:0 0 6px;font-size:12.5px;color:var(--mut)}
+.cmp pre{white-space:pre-wrap;word-break:break-word;font:12px/1.7 monospace;margin:0;max-height:180px;overflow:auto}
+/* drawer */
+#panel{position:fixed;top:0;right:0;width:800px;max-width:100vw;height:100vh;background:#fff;border-left:1px solid #c8d6e4;box-shadow:-6px 0 24px rgba(22,49,75,.18);padding:20px 24px;overflow:auto;z-index:20;transform:translateX(105%);transition:transform .18s}
+body.panel #panel{transform:none}
+#panel .close{position:absolute;top:14px;right:18px}
+#panel h3{margin:0 0 4px;padding-right:70px;font-size:17px}
+.recips{list-style:none;padding-left:4px;margin:6px 0}
+.recips li{padding:2px 0}
+.copies{list-style:none;padding:0;margin:6px 0}
+.copies li{margin:4px 0}
+.pill{display:inline-block;background:#eef4fa;border:1px solid #d5e2ee;border-radius:999px;padding:2px 10px;font-size:12px;margin:0 6px 6px 0}
+pre.bodytxt{white-space:pre-wrap;word-break:break-word;max-height:420px;overflow:auto;font:12.5px/1.7 monospace;background:#f3f6fa;padding:12px;border-radius:8px}
+.rel-item{display:block;width:100%;text-align:left;border:1px solid #dce5ef;border-radius:8px;background:#f8fbfe;padding:8px 10px;margin:6px 0;cursor:pointer}
+.rel-item:hover{background:#eaf3fc}
+.box{background:var(--card);border:1px solid var(--line);padding:14px 16px;border-radius:var(--rad);margin:10px 0}
+.box.warn{background:var(--warnbg);border-color:var(--warnl)}
+.muted{color:var(--mut)}
+footer{margin-top:26px;font-size:12px;color:var(--mut)}
+.mbtn{font-size:11.5px;padding:1px 8px;border-radius:5px;margin-left:4px}
+.mbtn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+@media(max-width:760px){main{padding:12px}.ask-row{flex-direction:column}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-att" viewBox="0 0 24 24"><path d="M21.4 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.2-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></symbol>
+<symbol id="i-conf" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-dl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+</defs></svg>
+<main>
+<header class="top"><div><h1>MIRA · 邮件研判工作台</h1><span class="scope">MIRA-UI-LAB · 合成演示数据（example.cn，全部虚构）· 结果一律待业务审核</span></div><span class="grow"></span><button id="denBtn" onclick="toggleDensity()">舒适密度</button></header>
+
+<section class="kpis" id="kpis"><div class="kpi"><div class="kv">—</div><div class="kl">加载中</div></div></section>
+
+<section id="overview">
+  <div class="grid2">
+    <div class="card"><h3>月度邮件分布 <span class="hint">点击柱子 → 时间线按该月筛选</span></h3><div class="vchart" id="chartMonthly"></div></div>
+    <div class="card"><h3>邮箱邮件量 Top 10 <span class="hint">点击条 → 时间线按邮箱筛选</span></h3><div id="chartMailbox"></div></div>
+    <div class="card"><h3>回复人 Top 10 <span class="hint">按逻辑邮件作者统计</span></h3><div id="chartAuthors"></div></div>
+    <div class="card"><h3>客户域分布 <span class="hint">外部来信域名 · 点击 → 候选链按域筛选</span></h3><div id="chartDomains"></div></div>
+  </div>
+</section>
+
+<section class="ask"><div class="ask-row"><input id="askBox" placeholder="问：同事回复过什么问题？例如 Sb异常、FDC分级管理、OPL催复、Haze确认" onkeydown="if(event.key==='Enter')ask()"><button onclick="ask()">提问</button></div>
+<div class="chipbar" id="chipbar"></div>
+<div class="quick"><span class="qchip" id="chipExt" onclick="toggleChip('ext')">外部来信</span><span class="qchip" id="chipAtt" onclick="toggleChip('att')">有附件</span><span class="qchip" id="chip30" onclick="toggleChip('d30')">近30天</span><span class="qchip" id="chipMarked" onclick="toggleChip('marked')">只看已标记</span></div>
+<div class="examples">试试：<span onclick="tryq('Sb')">Sb异常</span><span onclick="tryq('FDC')">FDC分级</span><span onclick="tryq('OPL')">OPL催复</span><span onclick="tryq('Native Oxide')">膜厚异常</span><span onclick="tryq('COA')">COA</span></div></section>
+
+<nav class="tabs"><button id="tbOverview" onclick="tab('overview')">总览</button><button id="tbAnswer" onclick="tab('answer')">答案</button><button id="tbTimeline" onclick="tab('timeline')">时间线</button><button id="tbChains" onclick="tab('chains')">候选链</button><button id="tbRoster" onclick="tab('roster')">名册与覆盖</button><button id="tbDedup" onclick="tab('dedup')">重复副本</button><button id="tbManual" onclick="tab('manual')">人工往来链</button><span class="spacer"></span><span class="mini" id="markStat"></span></nav>
+
+<section id="answer"><div class="box" id="answerEmpty"><b>输入问题开始检索。</b><p>答案按“谁回复过”聚合：头像圆标标识每位同事，徽章显示回复量，图标标注附件 / 多副本 / 冲突 / 候选链。点任意邮件打开右侧证据面板，答案不离开视线。</p></div><div id="answerBody"></div></section>
+
+<section id="timeline" hidden><div class="tools"><input type="search" id="query" placeholder="搜索主题、正文、发件人、附件名（/ 聚焦提问框）" oninput="onSearchInput()"><button onclick="toggleFilters()">筛选 ▾</button><button onclick="reload()">刷新</button><button onclick="exportView()"><svg class="ic"><use href="#i-dl"/></svg> 导出 CSV</button><span id="count" class="cnt"></span></div>
+<div class="filters" id="filters"><select id="originSel" onchange="reload()"><option value="">全部来源</option><option value="external">外部来信（含系统通知）</option><option value="internal">内部收发</option></select><select id="mbox" onchange="reload()"><option value="">全部邮箱</option></select><select id="orderSel" onchange="reload()"><option value="sent_desc">时间 ↓</option><option value="sent_asc">时间 ↑</option><option value="author">按发件人</option></select><input type="date" id="fromDate" onchange="reload()" title="起始日期"><input type="date" id="toDate" onchange="reload()" title="截止日期"><select id="limitSel" onchange="reload()"><option value="50">每页 50</option><option value="100">每页 100</option><option value="200">每页 200</option></select><button onclick="resetFilters()">重置</button></div>
+<ol class="tl" id="tlList"></ol><div class="pager" id="mailPager"></div></section>
+
+<section id="chains" hidden><div class="box"><b>候选沟通链</b>——由 Message-ID 引用、会话与规范主题自动归并（要求有外部提问入口＋内部回复），<b>含噪声需人工取舍</b>。展开后以流程卡呈现：客户提问 → 各同事回复 → 最新节点；点任意节点查看证据。</div><div class="tools"><input id="chDomain" placeholder="客户域名" oninput="renderChains()"><input id="chReplier" placeholder="回复人（姓名）" oninput="renderChains()"><input id="chQuery" placeholder="主题关键词" oninput="renderChains()"><button onclick="resetChainFilters()">重置</button><span id="chcount" class="cnt"></span></div><div id="chainList"></div></section>
+
+<section id="roster" hidden><div class="tools"><input id="rq" placeholder="搜索姓名、邮箱" oninput="renderRoster()"><span id="rcount" class="cnt"></span></div><div class="roster-grid" id="rosterGrid"></div></section>
+
+<section id="dedup" hidden><div class="box">同一封邮件在发件箱 / 收件箱或多名成员处的副本按 Message-ID 合并，<b>并排展示全部来源位置</b>；投递头差异（收件人 / 已读）属正常投递差异。内容冲突单独列出并<b>左右对比</b>（合成演示对比，字段级对比需生产端实例级正文支持）。</div><div class="tools"><span id="dcount" class="cnt"></span></div><div id="dedupBody"></div></section>
+
+<section id="manual" hidden><div class="box">以下来往链来自此前的定向补查与人工试阅，用来演示“找到同事回复与后续”的查看方式；链的正式抽取在页面验收后进行。</div><div class="tools"><span class="cnt">当前无人工往来链；候选链见“候选链”页签。</span></div></section>
+
+<footer>本机受控文件，不含远程资源；严格 CSP（无图片、无外部字体/脚本）；数据经同源只读接口提供，接口不写任何内容；标记、密度与导出仅在本机浏览器生效。</footer>
+</main>
+<aside id="panel"><button class="close" onclick="closePanel()">关闭</button><div id="drawerBody"></div></aside>
+<script>
+'use strict';
+const $=x=>document.getElementById(x);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MARKS_KEY='mira-marks-MIRA-UI-LAB';
+const ROSTER=[
+ ['张伟','zhangwei@example.cn','核心成员','accessible',764],['李娜','lina@example.cn','核心成员','accessible',146],
+ ['王强','wangqiang@example.cn','核心成员','accessible',430],['刘敏','liumin@example.cn','核心成员','accessible',310],
+ ['陈杰','chenjie@example.cn','核心成员','accessible',396],['赵雪','zhaoxue@example.cn','核心成员','accessible',291],
+ ['孙浩','sunhao@example.cn','核心成员','accessible',309],['周琳','zhoulin@example.cn','协作候选','accessible',233],['吴磊','wulei@example.cn','协作候选','accessible',364],
+ ['郑婷','zhengting@example.cn','协作候选','accessible',703],['马超','machao@example.cn','FAE','accessible',876],
+ ['许静','xujing@example.cn','FAE','accessible',826],['沈岩','shenyan@example.cn','FAE','accessible',888],
+ ['韩磊','hanlei@example.cn','FAE','accessible',202],['杨帆','yangfan@example.cn','FAE','accessible',745],
+ ['何雨','heyu@example.cn','FAE','accessible',281],['高峰','gaofeng@example.cn','FAE','invalid_account',445],
+ ['林悦','linyue@example.cn','FAE','invalid_account',590],['孟启','mengqi@example.cn','FAE','accessible',550],
+ ['袁胜','yuansheng@example.cn','FAE','accessible',663],['邓旭','dengxu@example.cn','FAE','accessible',733]
+].map(r=>({name:r[0],email:r[1],category:r[2],status:r[3],instances:r[4]}));
+const CAT_COLOR={'核心成员':'var(--acc)','协作候选':'var(--ok)','FAE':'#7a5ea8'};
+const state={tab:'overview',q:'',ext:false,att:false,d30:false,markedOnly:false,mailbox:'',order:'sent_desc',from:'',to:'',limit:50,offset:0,open:null,sel:-1};
+let REP=null,CHS=[],ALL=[],lastAnswer=null,mailGo=null,tlSelCards=[];
+let marks={};try{marks=JSON.parse(localStorage.getItem(MARKS_KEY)||'{}')||{}}catch(e){marks={}}
+function saveMarks(){try{localStorage.setItem(MARKS_KEY,JSON.stringify(marks))}catch(e){}}
+/* ---------- utils ---------- */
+function hue(name){let h=0;for(const ch of String(name||'?'))h=(h*31+ch.codePointAt(0))%360;return h}
+function av(name,cls){const n=String(name||'？');return '<span class="av '+(cls||'')+'" style="--h:'+hue(n)+'">'+esc(n.trim().charAt(0)||'？')+'</span>'}
+function hi(text,q){let s=esc(text);if(!q)return s;try{return s.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>'<mark class="hit">'+m+'</mark>')}catch(e){return s}}
+function folder(f){return f.folder_name||({'1':'已发送','2':'收件箱'})[f.folder_id]||('文件夹'+f.folder_id)}
+function fmtSize(n){if(n==null)return'大小未采集';return n>=1e9?(n/1e9).toFixed(1)+' GB':n>=1e6?(n/1e6).toFixed(1)+' MB':(n/1e3).toFixed(0)+' KB'}
+function icons(m){const t=[];
+ if(m.external)t.push('<span class="tag cust"><svg class="ic"><use href="#i-globe"/></svg>外部</span>');
+ if((m.attachments||[]).length)t.push('<span class="tag"><svg class="ic"><use href="#i-att"/></svg>'+m.attachments.length+'附件</span>');
+ if(m.copies>1)t.push('<span class="tag"><svg class="ic"><use href="#i-copy"/></svg>'+m.copies+'个位置</span>');
+ if(m.conflict)t.push('<span class="tag bad"><svg class="ic"><use href="#i-conf"/></svg>冲突</span>');
+ if(m.chain_id||m._chain)t.push('<span class="tag"><svg class="ic"><use href="#i-link"/></svg>'+esc(m.chain_id||m._chain)+'</span>');
+ if(m.id_status==='missing')t.push('<span class="tag">缺本封ID</span>');
+ return t.join('')}
+function markBtns(key){const mk=marks[key];return['test','chain','skip'].map(k=>'<button class="mbtn'+(mk===k?' on':'')+'" onclick="event.stopPropagation();toggleMark(\''+esc(key)+'\',\''+k+'\')">'+({test:'入题',chain:'入链',skip:'剔除'})[k]+'</button>').join('')}
+function d30date(){return new Date(Date.now()-30*864e5).toISOString().slice(0,10)}
+function qHits(q){const s=q.toLowerCase();return ALL.filter(m=>((m.subject||'')+'\n'+(m.preview||'')+'\n'+(m.attachments||[]).map(a=>a.name).join(' ')).toLowerCase().includes(s)).length}
+/* ---------- filter chips ---------- */
+function activeChips(){const c=[];
+ if(state.q)c.push({k:'q',label:'关键词：'+state.q,count:(lastAnswer&&lastAnswer.query===state.q)?lastAnswer.total:qHits(state.q),off:()=>{state.q='';$('askBox').value='';$('query').value='';lastAnswer=null;refreshAll()}});
+ if(state.ext)c.push({k:'ext',label:'外部来信',count:ALL.filter(m=>m.external).length,off:()=>toggleChip('ext')});
+ if(state.att)c.push({k:'att',label:'有附件',count:ALL.filter(m=>(m.attachments||[]).length).length,off:()=>toggleChip('att')});
+ if(state.d30)c.push({k:'d30',label:'近30天',count:ALL.filter(m=>m.sent_at.slice(0,10)>=d30date()).length,off:()=>toggleChip('d30')});
+ if(state.mailbox)c.push({k:'mailbox',label:'邮箱：'+state.mailbox.split('@')[0],count:ALL.filter(m=>m.mailbox===state.mailbox).length,off:()=>{state.mailbox='';$('mbox').value='';refreshAll()}});
+ if(state.from)c.push({k:'from',label:'自 '+state.from,count:ALL.filter(m=>m.sent_at.slice(0,10)>=state.from).length,off:()=>{state.from='';$('fromDate').value='';refreshAll()}});
+ if(state.to)c.push({k:'to',label:'至 '+state.to,count:ALL.filter(m=>m.sent_at.slice(0,10)<=state.to).length,off:()=>{state.to='';$('toDate').value='';refreshAll()}});
+ if(state.markedOnly)c.push({k:'marked',label:'只看已标记',count:Object.keys(marks).length,off:()=>toggleChip('marked')});
+ return c}
+function renderChipBar(){$('chipbar').innerHTML=activeChips().map(c=>'<span class="fchip">'+esc(c.label)+(c.count!=null?' <b>'+c.count+'</b>':'')+'<button class="x" title="移除该筛选" onclick="removeChip(\''+c.k+'\')"><svg class="ic"><use href="#i-x"/></svg></button></span>').join('')}
+function removeChip(k){const c=activeChips().find(x=>x.k===k);if(c)c.off()}
+function refreshAll(){state.offset=0;renderChipBar();if(state.tab==='answer'&&state.q)ask();else if(state.tab==='timeline')loadMail();writeHash()}
+function toggleChip(k){if(k==='ext')state.ext=!state.ext;if(k==='att')state.att=!state.att;if(k==='d30')state.d30=!state.d30;if(k==='marked')state.markedOnly=!state.markedOnly;
+ ['chipExt','chipAtt','chip30','chipMarked'].forEach((id,i)=>$(id).classList.toggle('on',[state.ext,state.att,state.d30,state.markedOnly][i]));
+ renderChipBar();if(state.tab==='answer'&&state.q)ask();if(state.tab==='timeline'){state.offset=0;loadMail()}writeHash()}
+function tryq(q){$('askBox').value=q;state.q=q;ask()}
+function ask(){const q=$('askBox').value.trim();state.q=q;state.offset=0;tab('answer');writeHash();$('answerEmpty').hidden=!!q;
+ if(!q){$('answerBody').innerHTML='';renderChipBar();return}
+ const p=new URLSearchParams({q:q});if(state.ext)p.set('origin','external');if(state.att)p.set('has_attachment','1');
+ if(state.d30)p.set('from',d30date());
+ $('answerBody').innerHTML='<div class="box muted">检索中…</div>';
+ apiGet('v1/answer?'+p).then(a=>{lastAnswer=a;renderChipBar();renderAnswer(a)}).catch(e=>{$('answerBody').innerHTML='<div class="box warn">检索失败：'+esc(e.message)+'</div>'})}
+function openInTimeline(){$('query').value=state.q;tab('timeline');state.offset=0;loadMail()}
+/* ---------- answer (visual cards) ---------- */
+function renderAnswer(a){if(a.error){$('answerBody').innerHTML='<div class="box warn">'+esc(a.error)+'</div>';return}
+ if(!a.total){$('answerBody').innerHTML='<div class="box"><b>未找到与“'+esc(a.query)+'”相关的邮件。</b><p>可尝试更短的关键词，或切到时间线浏览全部。范围内没有可靠证据时不作猜测。</p></div>';return}
+ const doms=a.external_domains.length?'<span class="tag cust"><svg class="ic"><use href="#i-globe"/></svg>客户域 '+a.external_domains.slice(0,3).map(esc).join(' · ')+(a.external_domains.length>3?' 等':'')+'</span>':'';
+ $('answerBody').innerHTML='<div class="box"><b style="font-size:16px">找到 '+a.total+' 封相关邮件</b> · '+a.authors.length+' 位同事处理过 '+doms+(a.truncated?'<span class="lite">（按最新 '+a.sampled+' 封聚合）</span>':'')+' <button class="mbtn" onclick="openInTimeline()">在时间线中查看全部 →</button></div>'+
+  a.authors.map(g=>{const name=g.author.name||g.author.email||'未知发件人';
+   return '<article class="acard"><header onclick="tgA(this)">'+av(name)+'<div class="who"><b>'+esc(name)+'</b> <span class="nbadge'+(g.external?' out':'')+'">'+g.count+' 封</span><div class="sub">'+esc(g.author.email||'')+'</div></div><span class="grow"></span><span class="lite">最新 '+esc(g.latest.slice(0,10))+'</span><span class="lite">▾</span></header><div class="amsgs" hidden>'+
+    g.messages.map(m=>'<div class="amsg" onclick="openDetail(\''+esc(m.logical_key)+'\')"><div class="subj">'+hi(m.subject,a.query)+icons(m)+markBtns(m.logical_key)+'</div><div class="meta"><span>'+esc(m.sent_at.slice(0,10))+'</span><span>'+esc(m.mailbox.split('@')[0])+'</span><span>'+esc(folder(m))+'</span>'+((m.attachments||[]).length?'<span>'+esc(m.attachments.map(x=>x.name).join('；'))+'</span>':'')+'</div><div class="prev">'+hi((m.preview||'').slice(0,180),a.query)+'</div></div>').join('')+'</div></article>'}).join('')}
+function tgA(h){const b=h.parentElement.querySelector('.amsgs');b.hidden=!b.hidden;h.querySelector('.lite:last-child').textContent=b.hidden?'▾':'▴'}
+/* ---------- timeline (visual) ---------- */
+function tab(t){['overview','answer','timeline','chains','roster','dedup','manual'].forEach(id=>{const el=$(id);if(el)el.hidden=t!==id});
+ ['Overview','Answer','Timeline','Chains','Roster','Dedup','Manual'].forEach(n=>{const b=$('tb'+n);if(b)b.classList.toggle('cur',t===n.toLowerCase())});
+ state.tab=t;
+ if(t==='timeline'){if(!$('query').value&&state.q)$('query').value=state.q;if(!$('tlList').children.length)loadMail()}
+ if(t==='dedup')loadDup();
+ writeHash()}
+function toggleFilters(){$('filters').classList.toggle('open')}
+function resetFilters(){['originSel','mbox','orderSel','fromDate','toDate','query'].forEach(id=>$(id).value='');$('orderSel').value='sent_desc';state.offset=0;reload()}
+let mailTimer=null;function onSearchInput(){clearTimeout(mailTimer);mailTimer=setTimeout(()=>{state.offset=0;loadMail()},350)}
+function reload(){state.offset=0;state.limit=parseInt($('limitSel').value,10)||50;state.q=$('query').value.trim();state.mailbox=$('mbox').value;state.order=$('orderSel').value;state.from=$('fromDate').value;state.to=$('toDate').value;renderChipBar();writeHash();loadMail()}
+async function loadMail(){const p=new URLSearchParams({offset:state.offset,limit:state.limit,q:state.q,mailbox:state.mailbox,order:state.order,from:state.from,to:state.to});
+ if(state.ext)p.set('origin','external');if(state.att)p.set('has_attachment','1');
+ try{const d=await apiGet('v1/messages?'+p);
+  let items=d.items;if(state.markedOnly)items=items.filter(m=>marks[m.logical_key]);
+  $('count').textContent='显示 '+items.length+' / '+d.total+' 条'+(state.markedOnly?'（已标记筛选仅作用于本页）':'');
+  const edge=state.offset===0;
+  $('tlList').innerHTML=items.map((m,i)=>'<li><div class="rail">'+av(m.author.name||m.author.email,'sm')+(i<items.length-1?'<span class="ln"></span>':'')+'</div><div class="card" data-key="'+esc(m.logical_key)+'" onclick="openDetail(\''+esc(m.logical_key)+'\')"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="dmark">'+esc(m.sent_at.slice(0,10))+' '+esc(m.sent_at.slice(11,16))+'</span><b>'+hi(m.subject,state.q)+'</b>'+icons(m)+markBtns(m.logical_key)+'</div><div class="prev lite" style="margin-top:3px">'+hi((m.preview||'').slice(0,140),state.q)+'</div></div></li>').join('');
+  state.sel=-1;tlSelCards=Array.from(document.querySelectorAll('#tlList .card'));
+  renderPager('mailPager',d.total,state.offset,state.limit,go=>{state.offset=go;writeHash();loadMail()});
+ }catch(e){$('count').textContent='';$('tlList').innerHTML='<li><div class="card box warn">加载失败：'+esc(e.message)+'（可点刷新重试）</div></li>'}}
+function renderPager(el,total,offset,limit,go){const pages=Math.ceil(total/limit)||1,cur=Math.floor(offset/limit);window._pagerGo=go;
+ let b='<button '+(cur===0?'disabled':'')+' onclick="pagerGo('+(cur-1)+')">上一页</button>';
+ const f=Math.max(0,cur-3),t2=Math.min(pages-1,cur+3);
+ if(f>0)b+='<button onclick="pagerGo(0)">1</button><span class="muted">…</span>';
+ for(let i=f;i<=t2;i++)b+='<button class="'+(i===cur?'cur':'')+'" onclick="pagerGo('+i+')">'+(i+1)+'</button>';
+ if(t2<pages-1)b+='<span class="muted">…</span><button onclick="pagerGo('+(pages-1)+')">'+pages+'</button>';
+ b+='<button '+(cur>=pages-1?'disabled':'')+' onclick="pagerGo('+(cur+1)+')">下一页</button><span class="muted">共 '+total+' 条 · 第 '+(cur+1)+' / '+pages+' 页</span>';
+ $(el).innerHTML=b}
+function pagerGo(i){if(window._pagerGo)window._pagerGo(i*($('limitSel')?parseInt($('limitSel').value,10)||50:50))}
+function exportView(){const p=new URLSearchParams({offset:0,limit:200,q:state.q,mailbox:state.mailbox,order:state.order,from:state.from,to:state.to});
+ if(state.ext)p.set('origin','external');if(state.att)p.set('has_attachment','1');
+ apiGet('v1/messages?'+p).then(d=>{const rows=[['logical_key','sent_at','author','mailbox','subject','folder','copies','external','mark']];
+  for(const m of d.items)rows.push([m.logical_key,m.sent_at,m.author.name||m.author.email,m.mailbox,m.subject,folder(m),m.copies,m.external?'是':'',marks[m.logical_key]||'']);
+  const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='mira-mail-view-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  $('count').textContent='已导出 '+d.items.length+' 条（每次最多 200 条）'}).catch(e=>alert('导出失败：'+e.message))}
+/* ---------- chains (flow) ---------- */
+function renderChains(){const dom=$('chDomain').value.trim().toLowerCase(),rep=$('chReplier').value.trim().toLowerCase(),q=$('chQuery').value.trim().toLowerCase();
+ let items=CHS;
+ if(dom)items=items.filter(c=>(c.customer_domains||[]).some(d=>d.toLowerCase().includes(dom)));
+ if(rep)items=items.filter(c=>(c.answerers||[]).some(a=>(a||'').toLowerCase().includes(rep)));
+ if(q)items=items.filter(c=>(c.subject||'').toLowerCase().includes(q));
+ $('chcount').textContent='显示 '+items.length+' / '+CHS.length+' 条';
+ $('chainList').innerHTML=items.map(c=>'<article class="chain-case"><header onclick="tgC(this)"><b>'+esc(c.subject||'(无主题)')+'</b><span class="tag">'+c.size+' 节点</span><span class="tag"><svg class="ic"><use href="#i-att"/></svg>'+c.with_attachments+'</span>'+(c.noise?'<span class="tag warn">疑似会议噪声</span>':'')+'<span class="grow lite">'+esc((c.customer_domains||[]).join(', '))+'</span><span class="lite">'+esc((c.first||'').slice(0,10))+' → '+esc((c.last||'').slice(0,10))+' ▾</span></header><div class="body" hidden data-id="'+esc(c.id)+'" data-loaded="" onclick="event.stopPropagation()"></div></article>').join('')||'<div class="box">无匹配候选链</div>'}
+function tgC(h){const b=h.parentElement.querySelector('.body');b.hidden=!b.hidden;if(!b.hidden&&!b.dataset.loaded)expandChain(b)}
+async function expandChain(box){box.innerHTML='<p class="muted">加载中…</p>';
+ try{const d=await apiGet('v1/chains/'+encodeURIComponent(box.dataset.id));if(d.error)throw new Error(d.error);
+  const nodes=(d.nodes||[]).slice().sort((a,b)=>a.sent_at<b.sent_at?-1:1);
+  const lastAt=nodes.length?nodes[nodes.length-1].sent_at.slice(0,10):'';
+  const days=lastAt?Math.max(0,Math.round((Date.now()-new Date(lastAt).getTime())/864e5)):null;
+  box.dataset.loaded='1';
+  box.innerHTML='<div class="flow">'+nodes.map((n,i)=>{const ext=!(n.author.email||'').endsWith('example.cn')&&!!(n.author.email||'');
+   return '<div class="fnode'+(i===0?' q':'')+(i===nodes.length-1?' latest':'')+'" onclick="openDetail(\''+esc(n.logical_key)+'\')"><div class="fa">'+av(n.author.name||n.author.email||'？','xs')+'<b class="fs" style="margin:0">'+esc(n.author.name||n.author.email||'待确认')+(ext?'（客户）':'')+'</b></div><div class="ft">'+esc(n.sent_at.slice(0,10))+' '+esc(n.sent_at.slice(11,16))+'</div><div class="fs">'+esc(n.subject)+'</div><div class="fx">'+esc(folder(n))+' · '+esc(n.mailbox.split('@')[0])+(n.attachments&&n.attachments.length?' · <svg class="ic"><use href="#i-att"/></svg>'+n.attachments.length:'')+'</div></div>'}).join('')+'</div>'+
+  '<div class="flow-status"><span class="tag"><svg class="ic"><use href="#i-clock"/></svg>最新节点 '+esc(lastAt)+(days!=null?' · 距今 '+days+' 天':'')+'</span><span class="tag cust">客户提问 '+esc((d.questioners||[]).slice(0,2).join('、'))+'</span><span class="tag">内部回复 '+((d.answerers||[]).length)+' 人</span><span class="tag warn">待业务审核 · 未见客户确认</span></div>'
+ }catch(e){box.innerHTML='<p class="box warn">加载失败：'+esc(e.message)+'</p>'}}
+function resetChainFilters(){['chDomain','chReplier','chQuery'].forEach(id=>$(id).value='');renderChains()}
+/* ---------- roster (cards) ---------- */
+function renderRoster(){const q=$('rq').value.toLowerCase().trim();const max=Math.max.apply(null,ROSTER.map(r=>r.instances));
+ const items=ROSTER.filter(r=>!q||(r.name+r.email).toLowerCase().includes(q));
+ $('rosterGrid').innerHTML=items.map(r=>'<div class="rcard'+(r.status!=='accessible'?' off':'')+'"><div class="row1">'+av(r.name)+'<div><b>'+esc(r.name)+'</b><div class="lite" style="font-size:11.5px">'+esc(r.email)+'</div></div><span class="grow"></span><span class="tag" style="color:'+CAT_COLOR[r.category]+';border-color:'+CAT_COLOR[r.category]+'">'+r.category+'</span></div><div class="bar"><i style="width:'+Math.round(r.instances/max*100)+'%"></i></div><div class="lite" style="margin-top:4px">'+r.instances+' 实例'+(r.status!=='accessible'?' · 地址无效（暂缓）':' · 可访问')+'</div></div>').join('');
+ $('rcount').textContent='显示 '+items.length+' / '+ROSTER.length+' 人'}
+/* ---------- dedup (side-by-side + conflicts) ---------- */
+async function loadDup(){try{const [rp,cr]=await Promise.all([apiGet('v1/report'),apiGet('v1/messages?offset=0&limit=200&order=sent_desc')]);
+ const confKeys=ALL.filter(m=>m.conflict).map(m=>m.logical_key);
+ const confMsgs=[];for(const k of confKeys){if(!confMsgs.some(x=>x.logical_key===k))confMsgs.push(ALL.filter(m=>m.logical_key===k)[0]||null)}
+ $('dcount').textContent='重复副本组 '+rp.duplicate_groups.length+' 组 · 内容冲突 '+rp.conflicting_logical+' 封';
+ let html='<h3 style="margin:6px 0 2px">重复副本组（并排来源位置）</h3>';
+ html+=rp.duplicate_groups.map(g=>'<div class="card"><div class="lite" style="margin-bottom:2px"><code>'+esc(g.logical_key.slice(0,34))+'…</code> · '+g.instances.length+' 个来源位置</div><div class="dupgrid">'+g.instances.map(i=>{const box=i.split(':')[0],api=i.split(':')[1]||'';
+  const person=ROSTER.find(r=>r.email.split('@')[0]===box);
+  return '<div class="tile"><div class="r">'+av(person?person.name:box,'xs')+'<b>'+esc(person?person.name:box)+'</b><span class="grow"></span><code>'+esc(api)+'</code></div></div>'}).join('')+'</div></div>').join('');
+ html+='<h3 style="margin:14px 0 2px">内容冲突（左右对比）</h3>';
+ if(!confMsgs.length)html+='<div class="box">当前数据无内容冲突。</div>';
+ for(const m of confMsgs){if(!m)continue;
+  try{const d=await apiGet('v1/messages/'+encodeURIComponent(m.logical_key));if(d.error)continue;
+   const cf=d.conflicts||[];
+   html+='<div class="card"><div class="subj" style="font-weight:600;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+esc(d.subject)+'<span class="tag bad"><svg class="ic"><use href="#i-conf"/></svg>'+cf.length+' 处差异</span><span class="grow"></span><button class="mbtn" onclick="openDetail(\''+esc(d.logical_key)+'\')">查看完整证据 →</button></div>'+
+    (cf.length?'<div class="cmp"><div class="side kept"><h4>保留版（'+esc((d.copies[0]||{}).api_id||'')+'）</h4><pre>'+esc(cf[0].kept)+'</pre></div><div class="side"><h4>另一副本（'+esc(cf[0].api_ref)+'）· 差异：'+esc(cf[0].field)+'</h4><pre>'+esc(cf[0].other)+'</pre></div></div>':'<p class="lite">字段级差异需生产端实例级正文支持。</p>')+'</div>'
+  }catch(e){/* skip */}}
+ $('dedupBody').innerHTML=html;
+ }catch(e){$('dcount').textContent='加载失败：'+esc(e.message)}}
+/* ---------- drawer (evidence panel) ---------- */
+async function openDetail(key,keep){state.open=key;document.body.classList.add('panel');if(!keep)writeHash();
+ let d;try{d=await apiGet('v1/messages/'+encodeURIComponent(key))}catch(e){$('drawerBody').innerHTML='<p class="box warn">加载失败：'+esc(e.message)+'</p>';return}
+ if(d.error){$('drawerBody').innerHTML='<p>未找到：'+esc(key)+'</p>';return}
+ const mk=marks[key];const name=d.author.name||d.author.email||'待确认';
+ const nm=p=>esc(p.name||p.email||'待确认')+(p.name&&p.email?' <span class="muted" style="font-size:12px">'+esc(p.email)+'</span>':'');
+ const recips=(label,list)=>{if(!list||!list.length)return'';if(list.length<=3)return '<p><b>'+label+'（'+list.length+'）：</b></p><ul class="recips">'+list.map(a=>'<li>'+nm(a)+'</li>').join('')+'</ul>';
+  return '<details class="recips-box"><summary style="cursor:pointer">'+label+' '+list.length+' 人（点击展开）</summary><ul class="recips">'+list.map(a=>'<li>'+nm(a)+'</li>').join('')+'</ul></details>'};
+ const cf=d.conflicts||[];
+ const confHtml=cf.length?'<p><b>内容差异（'+cf.length+'）：</b></p><div class="cmp"><div class="side kept"><h4>保留版</h4><pre>'+esc(cf[0].kept)+'</pre></div><div class="side"><h4>另一副本 '+esc(cf[0].api_ref)+'（'+esc(cf[0].field)+'）</h4><pre>'+esc(cf[0].other)+'</pre></div></div>':(d.conflict?'<p class="tag bad" style="display:inline-flex"><svg class="ic"><use href="#i-conf"/></svg> 此邮件存在内容冲突（字段级对比需实例级正文）</p>':'');
+ const atts=(d.copies[0]&&d.copies[0].attachments)||[];
+ const attsHtml=atts.length?'<p><b>附件（'+atts.length+'）：</b></p><ul class="recips">'+atts.map(a=>'<li><svg class="ic"><use href="#i-att"/></svg> '+esc(a.name)+' · '+esc(a.type||'?')+' · '+esc(fmtSize(a.size))+'</li>').join('')+'</ul>':'<p class="muted">无附件</p>';
+ const rel=(d.related||[]).length?'<p><b>同链相关：</b></p>'+d.related.map(r=>'<button class="rel-item" onclick="openDetail(\''+esc(r.logical_key)+'\')"><b>'+esc(r.subject)+'</b><br><span class="muted" style="font-size:12px">'+esc(r.sent_at.slice(0,10))+' · '+esc(r.author.name||r.author.email||'')+' · '+esc(r.basis)+'</span></button>').join(''):'';
+ const mid=d.id_status==='missing'?'缺本封Message-ID':(d.message_id||'');
+ const midHtml=mid.length>16?'<span title="'+esc(mid)+'">'+esc(mid.slice(0,12))+'…</span>':esc(mid);
+ const copyList=(d.copies||[]).map(c=>{const person=ROSTER.find(r=>r.email.split('@')[0]===String(c.mailbox||'').split('@')[0]);
+  return '<li><span class="pill">'+av(person?person.name:String(c.mailbox||'？').split('@')[0],'xs')+' '+esc(person?person.name:c.mailbox)+' · '+esc(folder(c))+' · <code>'+esc(c.api_id)+'</code>'+(c.is_read?' · 已读':'')+'</span></li>'}).join('');
+ $('drawerBody').innerHTML='<h3>'+esc(d.subject)+'</h3><p class="muted" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+av(name)+'<span>'+esc((d.sent_at||'').slice(0,16).replace('T',' '))+' · <b>'+esc(name)+'</b> · '+esc(folder((d.copies||[])[0]||{}))+' · 本封ID '+midHtml+'</span></p><p>'+['test','chain','skip'].map(k=>'<button class="mbtn'+(mk===k?' on':'')+'" onclick="toggleMark(\''+esc(key)+'\',\''+k+'\')">'+({test:'入题',chain:'入链',skip:'剔除'})[k]+'</button>').join('')+'</p>'+confHtml+recips('收件人',d.to)+recips('抄送',d.cc)+rel+attsHtml+'<p><b>来源位置（'+(d.copies||[]).length+'）：</b></p><ul class="copies">'+copyList+'</ul><p><b>原文：</b></p><pre class="bodytxt">'+esc(d.reply||'（正文为空或未取到）')+'</pre><p class="muted">审阅状态：'+esc(({pending_business_review:'待业务审核',reviewed:'已复核'})[d.review_state]||d.review_state)+'</p>'}
+function closePanel(){state.open=null;document.body.classList.remove('panel');writeHash()}
+/* ---------- marks ---------- */
+function toggleMark(key,kind){if(marks[key]===kind)delete marks[key];else marks[key]=kind;saveMarks();updateMarkStat();renderChipBar();
+ if(state.tab==='timeline')loadMail();if(state.tab==='answer'&&state.q)ask();if(state.open)openDetail(state.open,true)}
+function updateMarkStat(){const c=Object.keys(marks).length;$('markStat').textContent=c?'本机已标记 '+c+' 封（仅存本浏览器）':''}
+/* ---------- kpis + overview ---------- */
+function renderKpis(){if(!REP)return;const k=[['i-mail','逻辑邮件',REP.logical_messages,'goTimeline',{}],['i-db','邮箱实例',REP.instances,null,{}],['i-copy','重复副本',REP.duplicate_instances,'goDedup',{}],['i-copy','重复组',REP.duplicate_groups.length,'goDedup',{}],['i-conf','内容冲突',REP.conflicting_logical,'goDedup',{}],['i-link','候选链',CHS.length,'goChains',{}]];
+ $('kpis').innerHTML=k.map(x=>'<div class="kpi'+(x[1]==='内容冲突'&&x[2]>0?' hot':'')+'" '+(x[3]?'onclick="'+x[3]+'()"':'')+'><div class="kv"><svg class="ic"><use href="#'+x[0]+'"/></svg>'+(x[2]==null?'—':x[2])+'</div><div class="kl">'+x[1]+'</div></div>').join('')}
+function goTimeline(){tab('timeline')}function goDedup(){tab('dedup')}function goChains(){tab('chains')}
+function renderOverview(){if(!ALL.length)return;
+ const months={},boxes={},auths={},doms={};
+ for(const m of ALL){const mo=m.sent_at.slice(0,7);months[mo]=(months[mo]||0)+1;
+  boxes[m.mailbox]=(boxes[m.mailbox]||0)+1;
+  const an=m.author.name||m.author.email||'未知';auths[an]=(auths[an]||0)+1;
+  if(m.external){const dm=(m.author.email||'').split('@')[1];if(dm&&dm!=='example.cn')doms[dm]=(doms[dm]||0)+1}}
+ const mkeys=Object.keys(months).sort();const mmax=Math.max.apply(null,mkeys.map(k=>months[k]));
+ $('chartMonthly').innerHTML=mkeys.map(k=>'<div class="vbar" title="'+k+'：'+months[k]+' 封 · 点击筛选该月" onclick="pickMonth(\''+k+'\')"><span class="vv">'+months[k]+'</span><div class="col" style="height:'+Math.max(4,Math.round(months[k]/mmax*100))+'%"></div><span class="vl">'+k.slice(5)+'月</span></div>').join('');
+ const topB=Object.entries(boxes).sort((a,b)=>b[1]-a[1]).slice(0,10);const bmax=topB.length?topB[0][1]:1;
+ $('chartMailbox').innerHTML=topB.map(x=>'<div class="hbar" title="'+esc(x[0])+'：'+x[1]+' 封 · 点击筛选" onclick="pickMailbox(\''+esc(x[0])+'\')"><span class="lbl" title="'+esc(x[0])+'">'+esc(x[0].split('@')[0])+'</span><span class="track"><span class="fill" style="display:block;width:'+Math.round(x[1]/bmax*100)+'%"></span></span><span class="val">'+x[1]+'</span></div>').join('');
+ const topA=Object.entries(auths).sort((a,b)=>b[1]-a[1]).slice(0,10);const amax=topA.length?topA[0][1]:1;
+ $('chartAuthors').innerHTML=topA.map(x=>'<div class="hbar" style="cursor:default" title="'+esc(x[0])+'：'+x[1]+' 封"><span class="lbl">'+esc(x[0])+'</span><span class="track"><span class="fill" style="display:block;width:'+Math.round(x[1]/amax*100)+'%;background:linear-gradient(90deg,#57a06f,#2e7d4f)"></span></span><span class="val">'+x[1]+'</span></div>').join('');
+ const topD=Object.entries(doms).sort((a,b)=>b[1]-a[1]);
+ $('chartDomains').innerHTML=topD.length?topD.map(x=>'<span class="domchip" title="点击在候选链中按域筛选" onclick="pickDomain(\''+esc(x[0])+'\')">'+esc(x[0]).replace('.example.cn','')+' <b>'+x[1]+'</b></span>').join(''):'<span class="lite">无外部域</span>'}
+function pickMonth(k){state.from=k+'-01';const y=+k.slice(0,4),mo=+k.slice(5);const last=new Date(y,mo,0).getDate();state.to=k+'-'+String(last).padStart(2,'0');
+ $('fromDate').value=state.from;$('toDate').value=state.to;tab('timeline');state.offset=0;renderChipBar();loadMail()}
+function pickMailbox(b){state.mailbox=b;$('mbox').value=b;tab('timeline');state.offset=0;renderChipBar();loadMail()}
+function pickDomain(d){$('chDomain').value=d;tab('chains');renderChains()}
+/* ---------- density ---------- */
+function toggleDensity(){const c=document.body.classList.toggle('compact');try{localStorage.setItem('mira-density',c?'compact':'cozy')}catch(e){}
+ $('denBtn').textContent=c?'紧凑密度':'舒适密度'}
+/* ---------- hash / keyboard / boot ---------- */
+function readHash(){const h=location.hash.replace(/^#/,'');if(!h)return;const p=new URLSearchParams(h);
+ if(p.get('tab'))state.tab=p.get('tab');state.q=p.get('q')||'';
+ if(p.get('ext')==='1')state.ext=true;if(p.get('att')==='1')state.att=true;if(p.get('d30')==='1')state.d30=true;
+ state.mailbox=p.get('mailbox')||'';state.order=p.get('order')||'sent_desc';state.from=p.get('from')||'';state.to=p.get('to')||'';
+ state.limit=parseInt(p.get('limit')||'50',10)||50;state.offset=parseInt(p.get('offset')||'0',10)||0;state.open=p.get('open')||null}
+function writeHash(){const p=new URLSearchParams();p.set('tab',state.tab);
+ if(state.q)p.set('q',state.q);if(state.ext)p.set('ext','1');if(state.att)p.set('att','1');if(state.d30)p.set('d30','1');
+ if(state.mailbox)p.set('mailbox',state.mailbox);if(state.order!=='sent_desc')p.set('order',state.order);
+ if(state.from)p.set('from',state.from);if(state.to)p.set('to',state.to);
+ if(state.limit!==50)p.set('limit',state.limit);if(state.offset)p.set('offset',state.offset);if(state.open)p.set('open',state.open);
+ history.replaceState(null,'','#'+p.toString())}
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'){if(e.key==='Escape')e.target.blur();return}
+ if(e.key==='/'){e.preventDefault();$('askBox').focus();return}
+ if(e.key==='Escape'){closePanel();return}
+ if(state.tab!=='timeline'||!tlSelCards.length)return;
+ if(e.key==='j'||e.key==='ArrowDown'){e.preventDefault();state.sel=Math.min(tlSelCards.length-1,state.sel+1)}
+ else if(e.key==='k'||e.key==='ArrowUp'){e.preventDefault();state.sel=Math.max(0,state.sel-1)}
+ else if(e.key==='Enter'&&state.sel>=0){e.preventDefault();openDetail(tlSelCards[state.sel].dataset.key);return}
+ else return;
+ tlSelCards.forEach((c,i)=>c.classList.toggle('sel',i===state.sel));
+ if(tlSelCards[state.sel])tlSelCards[state.sel].scrollIntoView({block:'nearest'})});
+/* ---------- API 层：开发模式走 fake_api；静态托管（GitHub Pages）走 v1data.json 快照 ---------- */
+let STATIC=false,SD=null;
+async function probeApi(){try{const r=await fetch('v1/report');if(r.ok){await r.json();return}}catch(e){}
+ STATIC=true;const r2=await fetch('v1data.json');if(!r2.ok)throw new Error('v1data.json 加载失败');
+ SD=await r2.json();document.title+=' · 静态预览'}
+function staticApi(path){const at=path.indexOf('?');const p=(at<0?path:path.slice(0,at)).replace(/^\/?v1\//,'');
+ const qs=new URLSearchParams(at<0?'':path.slice(at+1));const g=(k,d)=>qs.get(k)||(d||'');
+ const done=v=>Promise.resolve(v);
+ if(p==='report')return done(SD.report);
+ if(p==='messages'){let items=SD.items.slice();const q=g('q').trim().toLowerCase();
+  if(q)items=items.filter(m=>(SD.hay[m.logical_key]||'').indexOf(q)>=0);
+  const o=g('origin');if(o==='external')items=items.filter(m=>m.external);else if(o==='internal')items=items.filter(m=>!m.external);
+  const mb=g('mailbox');if(mb)items=items.filter(m=>m.mailbox===mb);
+  const frm=g('from');if(frm)items=items.filter(m=>m.sent_at.slice(0,10)>=frm);
+  const to=g('to');if(to)items=items.filter(m=>m.sent_at.slice(0,10)<=to);
+  if(g('has_attachment'))items=items.filter(m=>m.attachments&&m.attachments.length);
+  const order=g('order','sent_desc');
+  items.sort((a,b)=>{const ka=a.sent_at+' '+a.subject,kb=b.sent_at+' '+b.subject;const c=ka>kb?1:-1;return order==='sent_asc'?-c:c});
+  if(order==='author')items.sort((a,b)=>{const ka=a.author.email||'',kb=b.author.email||'';if(ka!==kb)return ka>kb?-1:1;return a.sent_at>b.sent_at?-1:1});
+  const offset=Math.max(0,+g('offset','0')||0),limit=Math.min(Math.max(1,+g('limit','50')||50),200);
+  return done({items:items.slice(offset,offset+limit),total:items.length,offset,limit})}
+ if(p.indexOf('messages/')===0){const k=decodeURIComponent(p.slice(9));const d=SD.details[k];
+  return d?done(d):done({error:'not_found'})}
+ if(p==='answer'){const q=g('q').trim();if(!q)return done({error:'query_contract'});
+  const ql=q.toLowerCase();const hits=SD.items.filter(m=>(SD.hay[m.logical_key]||'').indexOf(ql)>=0);
+  hits.sort((a,b)=>a.sent_at>b.sent_at?-1:1);
+  const sliced=hits.slice(0,200);const groups={};
+  sliced.forEach(m=>{const key=(m.author.email||'').toLowerCase()||'(未知发件人)';let gr=groups[key];
+   if(!gr)gr=groups[key]={author:m.author,count:0,latest:m.sent_at,messages:[],external:m.external};
+   gr.count++;if(m.sent_at>gr.latest)gr.latest=m.sent_at;
+   if(gr.messages.length<4){const it=Object.assign({},m);it.chain_id=SD.chain_of[m.logical_key]||null;gr.messages.push(it)}});
+  const ordered=Object.keys(groups).map(k=>groups[k]).sort((a,b)=>a.latest>b.latest?-1:1).sort((a,b)=>b.count-a.count);
+  const domains=[];sliced.forEach(m=>{if(m.external){const dm=(m.author.email||'').split('@').pop()||'';
+   if(dm&&dm!=='example.cn'&&domains.indexOf(dm)<0)domains.push(dm)}});
+  domains.sort();
+  return done({query:q,total:hits.length,sampled:Math.min(hits.length,200),authors:ordered.slice(0,15),external_domains:domains,truncated:hits.length>200})}
+ if(p==='chains'){let items=SD.chains.slice();const d=g('domain').toLowerCase(),r2=g('replier').toLowerCase(),q=g('q').toLowerCase();
+  if(d)items=items.filter(c=>(c.customer_domains||[]).some(x=>(x||'').toLowerCase().indexOf(d)>=0));
+  if(r2)items=items.filter(c=>(c.answerers||[]).some(a=>(a||'').toLowerCase().indexOf(r2)>=0));
+  if(q)items=items.filter(c=>(c.subject||'').toLowerCase().indexOf(q)>=0);
+  return done({total:items.length,items:items,note:'候选链由合成数据生成，含噪声待人工取舍'})}
+ if(p.indexOf('chains/')===0){const id=decodeURIComponent(p.slice(7));const full=SD.chain_full[id];
+  return full?done(full):done({error:'not_found'})}
+ if(p==='duplicates'){const offset=Math.max(0,+g('offset','0')||0),limit=Math.min(Math.max(1,+g('limit','50')||50),200);
+  const groups=SD.duplicates.items;
+  return done({items:groups.slice(offset,offset+limit),total:groups.length,conflicting_logical:SD.duplicates.conflicting_logical})}
+ return done({error:'not_found'})}
+function apiGet(path){if(STATIC)return staticApi(path);
+ return fetch(path).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})}
+async function boot(){readHash();
+ try{const stored=localStorage.getItem('mira-density');if(stored==='compact'){document.body.classList.add('compact');$('denBtn').textContent='紧凑密度'}}catch(e){}
+ ['chipExt','chipAtt','chip30','chipMarked'].forEach((id,i)=>$(id).classList.toggle('on',[state.ext,state.att,state.d30,state.markedOnly][i]));
+ $('askBox').value=state.q;
+ await probeApi();const repP=apiGet('v1/report');const chP=apiGet('v1/chains');
+ const msgP=[0,200,400].map(o=>apiGet('v1/messages?offset='+o+'&limit=200&order=sent_desc'));
+ const results=await Promise.all([repP,chP].concat(msgP).map(p=>p.catch(e=>({error:String(e)}))));
+ REP=results[0];const chd=results[1];CHS=(chd&&chd.items)||[];
+ ALL=results.slice(2).map(x=>(x&&x.items)||[]).reduce((a,b)=>a.concat(b),[]);
+ renderKpis();renderOverview();renderRoster();renderChains();renderChipBar();updateMarkStat();
+ $('mailPager').dataset.ready='1';
+ if(REP&&REP.mailboxes){const sel=$('mbox');REP.mailboxes.forEach(b=>{const o=document.createElement('option');o.textContent=b;sel.appendChild(o)})}
+ if(state.mailbox)$('mbox').value=state.mailbox;
+ if(state.from)$('fromDate').value=state.from;if(state.to)$('toDate').value=state.to;
+ tab(state.tab||'overview');
+ if(state.q&&(state.tab==='answer')){lastAnswer=null;ask()}
+ if(state.open)openDetail(state.open,true)}
+boot();
+</script></body></html>
